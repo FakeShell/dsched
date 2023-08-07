@@ -1,0 +1,12 @@
+Source: dsched
+Section: utils
+Priority: optional
+Maintainer: Bardia Moshiri <fakeshell@bardia.tech>
+Build-Depends: debhelper (>= 13), gcc, make, uthash-dev
+Standards-Version: 4.5.0
+
+Package: dsched
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A utility to manage process scheduling
+ It can speed up the whole system by a noticable amount

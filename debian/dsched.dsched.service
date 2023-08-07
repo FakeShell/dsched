@@ -1,0 +1,11 @@
+[Unit]
+Description=process scheduler manager
+Requires=lxc@android.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/dsched
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
