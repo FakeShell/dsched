@@ -1,6 +1,8 @@
-dsched (0.0.0+git20230806034416.8126064.release) trixie; urgency=medium
+dsched (0.0.0+git20230806034416.8126064.release+git20230808014505.258e500.release) trixie; urgency=medium
 
-  [ Bardia Moshiri ]
   * initial commit
+  * add circleci configs
+  * debian: start dsched after phosh
 
- -- Bardia Moshiri <fakeshell@bardia.tech>  Sun, 06 Aug 2023 21:03:00 -0400
+ -- Bardia Moshiri <fakeshell@bardia.tech>  Tue, 08 Aug 2023 01:45:05 -0400
+

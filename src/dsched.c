@@ -47,18 +47,18 @@ void populate_process_and_gather_pids() {
     param.sched_priority = 0;
     if (sched_setscheduler(0, SCHED_OTHER, &param) == -1) {
         perror("Failed to set scheduling policy");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     int ret = setpriority(PRIO_PROCESS, 0, 10);
     if (ret == -1) {
         perror("Failed to set process priority");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     if (dir == NULL) {
         perror("Could not open /proc");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     char path[MAX_NAME_LEN];
@@ -191,7 +191,7 @@ void load_dsched_programs() {
 
     if (dsched_dir == NULL) {
         perror("Could not open /etc/dsched");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     while ((entry = readdir(dsched_dir)) != NULL) {
@@ -231,18 +231,19 @@ int check_batman_helper() {
     pipe = popen("batman-helper wlrdisplay", "r");
     if (pipe == NULL) {
         perror("popen");
+        return -1;
     }
 
     fgets(buffer, sizeof(buffer), pipe);
     pclose(pipe);
 
-    return strncmp(buffer, "yes", 3) == 0;
+    return strncmp(buffer, "yes", 3) != 0;
 }
 
 int main() {
     if (getuid() != 0) {
         fprintf(stderr, "dsched must run as root.\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     load_dsched_programs();
@@ -267,6 +268,10 @@ int main() {
 
     sched_check();
 
+    while (check_batman_helper() != 0) {
+        sleep(2);
+    }
+
     while (true) {
         sleep(2);
 
@@ -277,3 +282,4 @@ int main() {
 
     return 0;
 }
+
