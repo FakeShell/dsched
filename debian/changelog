@@ -1,8 +1,9 @@
-dsched (0.0.0+git20230806034416.8126064.release+git20230808014505.258e500.release) trixie; urgency=medium
+dsched (0.0.0+git20230808205059.966bf8b.release) trixie; urgency=medium
 
   * initial commit
   * add circleci configs
   * debian: start dsched after phosh
+  * make the service start and stop gracefully to be managed correctly by systemd
 
- -- Bardia Moshiri <fakeshell@bardia.tech>  Tue, 08 Aug 2023 01:45:05 -0400
+ -- Bardia Moshiri <fakeshell@bardia.tech>  Tue, 08 Aug 2023 20:50:59 -0400
 

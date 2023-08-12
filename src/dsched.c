@@ -2,6 +2,7 @@
 // Copyright (C) 2023 Bardia Moshiri <fakeshell@bardia.tech>
 
 #include "dsched.h"
+#include "dbus_listener.h"
 
 Process processes[MAX_PROCESSES];
 SetProcess *set_pids = NULL;
@@ -37,6 +38,16 @@ bool isInPatternList(const char* pattern, const char* patterns[], int patternCou
     }
 
     return false;
+}
+
+void set_received_pids_to_fifo() {
+    gint *pids;
+    int count;
+    get_received_pids(&pids, &count);
+
+    for (int i = 0; i < count; i++) {
+        set_sched_fifo(pids[i], "DBUS_APP");
+    }
 }
 
 void populate_process_and_gather_pids() {
@@ -173,7 +184,7 @@ void set_sched_fifo(pid_t pid, const char *program_name) {
     }
 
     if (cmdline == NULL) {
-        strncpy(cmdline, "[ERROR]", MAX_NAME_LEN - 1);
+        return;
     }
 
     if (sched_setscheduler(pid, SCHED_FIFO, &param) == -1) {
@@ -246,6 +257,7 @@ int main() {
         exit(1);
     }
 
+    GThread *dbus_thread = g_thread_new(NULL, (GThreadFunc)start_dbus_listener, NULL);
     load_dsched_programs();
 
     void sched_check() {
@@ -275,11 +287,11 @@ int main() {
     while (true) {
         sleep(2);
 
-        if (check_batman_helper()) {
+        if (!check_batman_helper()) {
             sched_check();
+            set_received_pids_to_fifo();
         }
     }
 
     return 0;
 }
-

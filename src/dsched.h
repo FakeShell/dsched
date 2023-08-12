@@ -16,6 +16,7 @@
 #include <uthash.h>
 #include <sys/resource.h>
 #include <errno.h>
+#include <glib.h>
 
 #define MAX_PROGRAMS 1000
 

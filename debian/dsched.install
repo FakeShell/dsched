@@ -1,2 +1,3 @@
 dsched usr/bin
 conf/droidian etc/dsched
+org.droidian.dsched.conf /etc/dbus-1/system.d/
