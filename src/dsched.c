@@ -233,22 +233,12 @@ void load_dsched_programs() {
     closedir(dsched_dir);
 }
 
-int check_batman_helper() {
-    FILE *pipe;
-    char buffer[16];
-
+int wlrdisplay_status() {
     setenv("XDG_RUNTIME_DIR", "/run/user/32011", 1);
 
-    pipe = popen("batman-helper wlrdisplay", "r");
-    if (pipe == NULL) {
-        perror("popen");
-        return -1;
-    }
+    int result = wlrdisplay(0, NULL);
 
-    fgets(buffer, sizeof(buffer), pipe);
-    pclose(pipe);
-
-    return strncmp(buffer, "yes", 3) != 0;
+    return result != 0;
 }
 
 int main() {
@@ -280,14 +270,14 @@ int main() {
 
     sched_check();
 
-    while (check_batman_helper() != 0) {
+    while (wlrdisplay_status() != 0) {
         sleep(2);
     }
 
     while (true) {
         sleep(2);
 
-        if (!check_batman_helper()) {
+        if (!wlrdisplay_status()) {
             sched_check();
             set_received_pids_to_fifo();
         }

@@ -2,11 +2,12 @@ Source: dsched
 Section: utils
 Priority: optional
 Maintainer: Bardia Moshiri <fakeshell@bardia.tech>
-Build-Depends: debhelper (>= 13), gcc, make, uthash-dev, libglib2.0-dev, libgio2.0-cil-dev
+Build-Depends: debhelper (>= 13), gcc, make, uthash-dev, libglib2.0-dev, libgio2.0-cil-dev, batman-dev, libbatman-wrappers
 Standards-Version: 4.5.0
 
 Package: dsched
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+         libbatman-wrappers
 Description: A utility to manage process scheduling
  It can speed up the whole system by a noticable amount

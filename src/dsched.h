@@ -17,6 +17,7 @@
 #include <sys/resource.h>
 #include <errno.h>
 #include <glib.h>
+#include <batman/wlrdisplay.h>
 
 #define MAX_PROGRAMS 1000
 
