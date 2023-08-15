@@ -1,6 +1,5 @@
 [Unit]
 Description=process scheduler manager
-Requires=lxc@android.service
 After=phosh.service
 
 [Service]
