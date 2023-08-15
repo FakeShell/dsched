@@ -13,7 +13,7 @@ int set_pid_count = 0;
 int gtk4_pids[MAX_PROCESSES];
 int qt_pids[MAX_PROCESSES];
 int checked_pids[MAX_PROCESSES];
-
+char user_pid[16];
 char programs_to_schedule[MAX_PROGRAMS][MAX_NAME_LEN];
 int gtk4_index = 0;
 int qt_index = 0;
@@ -27,7 +27,7 @@ bool is_pid_checked(int pid) {
     return s != NULL;
 }
 
-bool isInPatternList(const char* pattern, const char* patterns[], int patternCount) {
+bool is_in_pattern_list(const char* pattern, const char* patterns[], int patternCount) {
     PatternHash *s;
 
     for (int i = 0; i < patternCount; i++) {
@@ -50,7 +50,7 @@ void set_received_pids_to_fifo() {
     }
 }
 
-void populate_process_and_gather_pids() {
+void populate_process() {
     DIR *dir = opendir("/proc");
     struct dirent *entry;
 
@@ -99,7 +99,7 @@ void populate_process_and_gather_pids() {
 
             fgets(processes[process_count].name, sizeof(processes[process_count].name), f);
 
-            if (isInPatternList(processes[process_count].name, patterns, sizeof(patterns) / sizeof(patterns[0]))) {
+            if (is_in_pattern_list(processes[process_count].name, patterns, sizeof(patterns) / sizeof(patterns[0]))) {
                 fclose(f);
                 continue;
             }
@@ -112,7 +112,7 @@ void populate_process_and_gather_pids() {
             if (f == NULL) continue;
 
             while (fgets(library_check_buffer, sizeof(library_check_buffer), f) != NULL) {
-                if (isInPatternList(library_check_buffer, skipPatterns, sizeof(skipPatterns) / sizeof(skipPatterns[0]))) continue;
+                if (is_in_pattern_list(library_check_buffer, skipPatterns, sizeof(skipPatterns) / sizeof(skipPatterns[0]))) continue;
 
                 if (strstr(library_check_buffer, "libgtk-4.so")) {
                     gtk4_pids[gtk4_index++] = pid;
@@ -196,7 +196,7 @@ void set_sched_fifo(pid_t pid, const char *program_name) {
     add_set_pid(pid, program_name);
 }
 
-void load_dsched_programs() {
+void load_dsched_list() {
     DIR *dsched_dir = opendir("/etc/dsched");
     struct dirent *entry;
 
@@ -234,11 +234,42 @@ void load_dsched_programs() {
 }
 
 int wlrdisplay_status() {
-    setenv("XDG_RUNTIME_DIR", "/run/user/32011", 1);
+    char run_dir[256];
+    snprintf(run_dir, sizeof(run_dir), "/run/user/%s", user_pid);
+
+    setenv("XDG_RUNTIME_DIR", run_dir, 1);
 
     int result = wlrdisplay(0, NULL);
 
     return result != 0;
+}
+
+void wait_for_uid() {
+    while (1) {
+        int count = 0;
+        struct dirent *de;
+        DIR *dr = opendir("/run/user");
+
+        if (dr == NULL) {
+            printf("Could not open directory");
+            return;
+        }
+
+        while ((de = readdir(dr)) != NULL) {
+            if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
+                count++;
+                strcpy(user_pid, de->d_name);
+            }
+        }
+
+        closedir(dr);
+
+        if (count == 1) {
+            break;
+        } else {
+            sleep(5);
+        }
+    }
 }
 
 int main() {
@@ -247,11 +278,13 @@ int main() {
         exit(1);
     }
 
+    wait_for_uid();
+
     GThread *dbus_thread = g_thread_new(NULL, (GThreadFunc)start_dbus_listener, NULL);
-    load_dsched_programs();
+    load_dsched_list();
 
     void sched_check() {
-        populate_process_and_gather_pids();
+        populate_process();
         for (int i = 0; i < program_count; i++) {
             pid_t pid;
             if (is_process_running(programs_to_schedule[i], &pid)) {
